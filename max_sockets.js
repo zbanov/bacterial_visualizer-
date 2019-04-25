@@ -61,8 +61,17 @@ const wss = new WebSocket.Server({ port: 7474 });
 wss.on("connection", function connection(ws, req) {
 
 	ws.on("message", function incoming(message) {
-		console.log("received: %s", message);
-	});
+
+		parsedMessage = JSON.parse(message);
+		Max.outlet("location", parsedMessage);
+		/*Max.outlet("bac", parsedMessage.bac*2 - 1);
+		Max.outlet("act", parsedMessage.act*2 - 1);
+		Max.outlet("ten", parsedMessage.ten*2 -1);
+		Max.outlet("verr", parsedMessage.verr*2 -1);
+		Max.outlet("pro", parsedMessage.pro*2 -1);
+		Max.outlet("cyan", parsedMessage.cyan*2 -1);*/
+		});
+
 
 	ws.on("close", function stop() {
 		Max.removeHandlers("send");
@@ -92,6 +101,7 @@ wss.on("connection", function connection(ws, req) {
 		}
 	});
 });
+
 
 Max.addHandler(Max.MESSAGE_TYPES.ALL, (handled, ...args) => {
 	if (!handled) {

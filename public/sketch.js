@@ -7,9 +7,10 @@ var tenSound;
 var verrSound;
 var proSound;
 var cyanSound;
-var allSounds = [];
-var heartBeat;
+var cageSound;
 var exampleSocket = new WebSocket("ws://localhost:7474");
+var locations;
+var play = false;
 
 backFlock = new Flock();
 firmFlock = new Flock();
@@ -22,7 +23,6 @@ allFlocks = [backFlock, firmFlock, actFlock, tenFlock, verrFlock, proFlock, cyan
 
 exampleSocket.onopen = function (event) {
 	console.log("sending data...");
-	exampleSocket.send("Ready, willing and able!");
 };
 
 exampleSocket.onmessage = function (event) {
@@ -34,9 +34,10 @@ exampleSocket.onmessage = function (event) {
 	 verrSound = e.value_5;
 	 proSound = e.value_6;
 	 cyanSound = e.value_7;
-	 heartBeart = e.value_8;
-	 allSounds = [backSound, firmSound, actSound, tenSound, verrSound, proSound, cyanSound];
+	 cageSound = e.value_8;
 };
+
+
 
 function setup() {
 
@@ -50,30 +51,51 @@ function draw() {
   noStroke();
   fill(0, 20);
   rect(0, 0, width, height);
-	soundCheck();
+	allSounds = [backSound, firmSound, actSound, tenSound, verrSound, proSound, cyanSound];
 	runFlocks();
-	}
+	soundCheck();
+	locations = JSON.stringify({
+		"bac": (allFlocks[0].width/(canvasSizeX)*2)-1,
+		"firm": (allFlocks[1].width/(canvasSizeX)*2)-1,
+		"act": (allFlocks[2].width/(canvasSizeX)*2)-1,
+		"ten": (allFlocks[3].width/(canvasSizeX)*2)-1,
+		"verr": (allFlocks[4].width/(canvasSizeX)*2)-1,
+		"pro": (allFlocks[5].width/(canvasSizeX)*2)-1,
+		"cyan": (allFlocks[6].width/(canvasSizeX)*2)-1,});
+}
 
 function soundCheck() {
 	for (var i = 0; i < allSounds.length; i++){
-		if (allSounds[i] > -50 && allSounds[i] != 0 && allFlocks[i].play == false){
+		if (allSounds[i] > -25 && allSounds[i] != 0 && allFlocks[i].play == false){
 			allFlocks[i].play = true;
-			var width = Math.floor((Math.random() * canvasSizeX) + 1);
-			var height = Math.floor((Math.random() * canvasSizeY) + 1);
+			allFlocks[i].width = Math.floor((Math.random() * canvasSizeX) + 1);
+			allFlocks[i].height = Math.floor((Math.random() * canvasSizeY) + 1);
+			allFlocks[i].playSound = allSounds[i];
+			exampleSocket.send(locations);
 			for (var y = 0; y < allSounds[i] + 50; y++) {
-				var b = new Boid(width / 2, height / 2, createVector(random(-1.5,1.5),random(-1.5,)), i, 100);
+				var b = new Boid(allFlocks[i].width, allFlocks[i].height, createVector(random(-1.0,1.0),random(-1.5,)), i, 100);
 				allFlocks[i].addBoid(b);
 		  	}
 			}
-		else if (allFlocks[i].play == true && allSounds[i] < -50){
+		else if (allFlocks[i].play == true && allFlocks[i].playSound < allSounds[i] + 5){
+			for (var y = 0; y < allSounds[i] - allFlocks[i].playSound; y++) {
+				var b = new Boid(allFlocks[i].width, allFlocks[i].height, createVector(random(-1.0,1.0),random(-1.5,)), i, 100);
+				allFlocks[i].addBoid(b);
+				allFlocks[i].playSound = allSounds[i];
+				exampleSocket.send(locations);
+		  	}
+		}
+		else if (allFlocks[i].play == true && allFlocks[i].playSound-10 > allSounds[i]){
 			for (var y = 0; y < allFlocks[i].boids.length; y++){
 					allFlocks[i].removeBoid(y);
 					console.log("removing");
 				}
 				allFlocks[i].play = false;
+				allFlocks[i].playSound = 0;
 		}
 	}
 }
+
 
 /*function soundCheck(){
 	flock = new Flock();
@@ -100,6 +122,9 @@ function Flock() {
   // An array for all the boids
   this.boids = []; // Initialize the array
 	this.play = false;
+	this.height = 0;
+	this.width = 0;
+	this.playSound = 0;
 }
 
 Flock.prototype.run = function() {
@@ -127,6 +152,7 @@ function Boid(x,y,r,c, l) {
   this.lifespan = l;
   this.mass = random(2, 2.5);
 	this.position = createVector(x,y);
+	this.maxspeed = 1;
 
 	if (c == 0) {
 		this.color = color(102,0,102);
@@ -155,7 +181,7 @@ function Boid(x,y,r,c, l) {
 Boid.prototype.run = function(boids) {
 
     this.update();
-    //this.borders();
+    this.borders();
     this.display();
 }
 
@@ -188,17 +214,12 @@ Boid.prototype.seek = function(target) {
   return steer;
 }
 
-
-/*Boid.prototype.render = function() {
-  // Draw a triangle rotated in the direction of velocity
-  var theta = this.velocity.heading() + radians(90);
-  push();
-  translate(this.position.x, this.position.y);
-  rotate(theta);
-  pop();
-}*/
-
-// Wraparound
+Boid.prototype.borders = function() {
+  if (this.position.x < -this.r)  this.velocity.x *= -1;
+  if (this.position.y < -this.r)  this.velocity.y *= -1;
+  if (this.position.x > width +this.r) this.velocity.x *= -1;
+  if (this.position.y > height+this.r) this.velocity.y *= -1;
+}
 
 
 Boid.prototype.display = function() {
