@@ -7,7 +7,7 @@ var tenSound;
 var verrSound;
 var proSound;
 var cyanSound;
-var cageSound;
+var dayNum;
 var exampleSocket = new WebSocket("ws://localhost:7474");
 var locations;
 var play = false;
@@ -34,7 +34,7 @@ exampleSocket.onmessage = function (event) {
 	 verrSound = e.value_5;
 	 proSound = e.value_6;
 	 cyanSound = e.value_7;
-	 cageSound = e.value_8;
+	 dayNum = e.value_8;
 };
 
 
@@ -47,11 +47,43 @@ background(0);
 }
 
 
+
 function draw() {
   noStroke();
   fill(0, 20);
   rect(0, 0, width, height);
 	allSounds = [backSound, firmSound, actSound, tenSound, verrSound, proSound, cyanSound];
+	let s = 'Day ' + dayNum;
+	fill(500);
+	text(s, 10, 10, 70, 80);
+	if (backSound != -999 && backSound != 0){
+		fill(500);
+		text("Bacteriodetes: Purple, Violin", 10,50);
+		}
+	if (firmSound != -999 && firmSound != 0){
+		fill(500);
+		text("Firmicutes: Green, Bassoon", 10, 70);
+			}
+	if (actSound != -999 && actSound != 0){
+		fill(500);
+		text("Actinobacteria: Orange, Oboe", 10, 90);
+					}
+	if (tenSound != -999 && tenSound != 0){
+		fill(500);
+		text("Tenericutes: Yellow, Viola", 10, 110);
+		}
+	if (verrSound != -999 && verrSound != 0){
+		fill(500);
+		text("Verrucomicrobia: Red, Flute", 10, 130);
+				}
+	if (proSound != -999 && proSound != 0){
+		fill(500);
+		text("Proteobacteria: Brown, Clarinet", 10, 150);
+	}
+	if (cyanSound != -999 && cyanSound != 0){
+		fill(500);
+		text("Cyanobacteria: Blue, Horn", 10, 170);
+	}
 	runFlocks();
 	soundCheck();
 	locations = JSON.stringify({

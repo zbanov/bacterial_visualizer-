@@ -61,9 +61,9 @@ const wss = new WebSocket.Server({ port: 7474 });
 wss.on("connection", function connection(ws, req) {
 
 	ws.on("message", function incoming(message) {
-
 		parsedMessage = JSON.parse(message);
 		Max.outlet("location", parsedMessage);
+
 		/*Max.outlet("bac", parsedMessage.bac*2 - 1);
 		Max.outlet("act", parsedMessage.act*2 - 1);
 		Max.outlet("ten", parsedMessage.ten*2 -1);
